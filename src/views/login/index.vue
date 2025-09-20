@@ -1,6 +1,25 @@
 <script>
+import instance from '@/utils/request'
+
 export default {
-  name: 'LoginIndex'
+  name: 'LoginIndex',
+  data () {
+    return {
+      picCode: '', // User's input picture code
+      picKey: '', // Picture unique key
+      picUrl: '' // Picture URL
+    }
+  },
+  async created () {
+    await this.getPicCode()
+  },
+  methods: {
+    async getPicCode () {
+      const res = await instance.get('/captcha/image')
+      this.picUrl = res.data.base64 // Picture URL
+      this.picCode = res.data.key // Picture unique key
+    }
+  }
 }
 </script>
 
@@ -23,7 +42,7 @@ export default {
         </div>
         <div class="form-item">
           <input class="inp" maxlength="5" placeholder="请输入图形验证码" type="text">
-          <img src="@/assets/code.png" alt="">
+          <img v-if="picUrl" :src="picUrl" @click="getPicCode" alt="">
         </div>
         <div class="form-item">
           <input class="inp" placeholder="请输入短信验证码" type="text">
