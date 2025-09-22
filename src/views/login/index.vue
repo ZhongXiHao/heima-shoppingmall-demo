@@ -1,6 +1,6 @@
 <script>
 
-import { getPicCodeApi } from '@/api/login'
+import { getPicCodeApi, getMsgVerifyCodeApi } from '@/api/login'
 
 export default {
   name: 'LoginIndex',
@@ -8,7 +8,11 @@ export default {
     return {
       picCode: '', // User's input picture code
       picKey: '', // Picture unique key
-      picUrl: '' // Picture URL
+      picUrl: '', // Picture URL
+      totalSecond: 60, // Countdown seconds
+      currentSecond: 60, // Current countdown seconds
+      timer: null, // Timer
+      phoneNumber: '' // User's input mobile number
     }
   },
   async created () {
@@ -18,7 +22,63 @@ export default {
     async getPicCode () {
       const res = await getPicCodeApi()
       this.picUrl = res.data.base64 // Picture URL
-      this.picCode = res.data.key // Picture unique key
+      this.picKey = res.data.key // Picture unique key
+
+      // Toast('点击图片可更换验证码')
+      // this.$toast('hi')
+    },
+    async getMsgVerifyCode () {
+      if (!this.verifyPhoneNumberPattern() || !this.verifyPicCode()) {
+        return
+      }
+      if (!this.timer && this.currentSecond === this.totalSecond) {
+        // Request to send SMS verification code would go here
+        const res = await getMsgVerifyCodeApi({
+          captchaCode: this.picCode,
+          captchaKey: this.picKey,
+          mobile: this.phoneNumber
+        })
+        console.log({
+          captchaCode: this.picCode,
+          captchaKey: this.picKey,
+          mobile: this.phoneNumber
+        })
+        console.log(res)
+
+        // Start countdown
+        this.currentSecond--
+        this.$toast('短信验证码已发送，请注意查收')
+        this.timer = setInterval(() => {
+          this.currentSecond--
+          if (this.currentSecond <= 0) {
+            clearInterval(this.timer)
+            this.timer = null
+            this.currentSecond = this.totalSecond
+          }
+        }, 1000)
+      }
+    },
+    // Validate picture code format
+    verifyPicCode () {
+      if (!/^\w{4}$/.test(this.picCode)) {
+        this.$toast('请输入正确的图形验证码')
+        return false
+      }
+      return true
+    },
+    // Validate phone number format
+    verifyPhoneNumberPattern () {
+      if (!/^1[3-9]\d{9}/.test(this.phoneNumber)) {
+        this.$toast('手机号格式不正确')
+        return false
+      }
+      return true
+    }
+  },
+  destroyed () {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
     }
   }
 }
@@ -39,15 +99,18 @@ export default {
 
       <div class="form">
         <div class="form-item">
-          <input class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
+          <input v-model="phoneNumber" class="inp" maxlength="11" placeholder="请输入手机号码" type="text">
         </div>
         <div class="form-item">
-          <input class="inp" maxlength="5" placeholder="请输入图形验证码" type="text">
+          <input v-model="picCode" class="inp" maxlength="5" placeholder="请输入图形验证码" type="text">
           <img v-if="picUrl" :src="picUrl" @click="getPicCode" alt="">
         </div>
         <div class="form-item">
           <input class="inp" placeholder="请输入短信验证码" type="text">
-          <button>获取验证码</button>
+          <button class="getSmgCodeBtn" @click="getMsgVerifyCode" :disabled="currentSecond !== totalSecond">
+            {{ currentSecond === totalSecond ? '获取验证码' : currentSecond + 's后重发' }}
+          </button>
+
         </div>
       </div>
 
