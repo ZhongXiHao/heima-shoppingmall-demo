@@ -1,6 +1,6 @@
 <script>
 
-import { getPicCodeApi, getMsgVerifyCodeApi } from '@/api/login'
+import { getPicCodeApi, getMsgVerifyCodeApi, loginApi } from '@/api/login'
 
 export default {
   name: 'LoginIndex',
@@ -9,16 +9,39 @@ export default {
       picCode: '', // User's input picture code
       picKey: '', // Picture unique key
       picUrl: '', // Picture URL
+      isGetPicCode: false, // Whether the picture code has been obtained
       totalSecond: 60, // Countdown seconds
       currentSecond: 60, // Current countdown seconds
       timer: null, // Timer
-      phoneNumber: '' // User's input mobile number
+      phoneNumber: '', // User's input mobile number
+      smsCode: '' // User's input SMS code
     }
   },
   async created () {
     await this.getPicCode()
   },
   methods: {
+    async login () {
+      if (!this.verifyPhoneNumberPattern() || !this.verifyPicCode()) {
+        return
+      }
+      if (/\d{6}&/.test(this.smsCode)) {
+        this.$toast('请输入正确的短信验证码')
+      }
+      // Call login API
+      const res = await loginApi({
+        mobile: this.phoneNumber,
+        smsCode: this.smsCode
+      })
+      console.log(res)
+      if (res.status === 200) {
+        this.$toast('登录成功')
+        // Redirect to home page
+        await this.$router.push('/')
+      } else {
+        this.$toast('登录失败，请重试')
+      }
+    },
     async getPicCode () {
       const res = await getPicCodeApi()
       this.picUrl = res.data.base64 // Picture URL
@@ -28,6 +51,8 @@ export default {
       // this.$toast('hi')
     },
     async getMsgVerifyCode () {
+      // Change state to indicate picture code has been obtained
+      this.isGetPicCode = true
       if (!this.verifyPhoneNumberPattern() || !this.verifyPicCode()) {
         return
       }
@@ -60,7 +85,7 @@ export default {
     },
     // Validate picture code format
     verifyPicCode () {
-      if (!/^\w{4}$/.test(this.picCode)) {
+      if (!/^\w{4}$/.test(this.picCode) || !this.isGetPicCode) {
         this.$toast('请输入正确的图形验证码')
         return false
       }
@@ -76,6 +101,7 @@ export default {
     }
   },
   destroyed () {
+    // When the component is destroyed, clear the timer
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = null
@@ -106,7 +132,7 @@ export default {
           <img v-if="picUrl" :src="picUrl" @click="getPicCode" alt="">
         </div>
         <div class="form-item">
-          <input class="inp" placeholder="请输入短信验证码" type="text">
+          <input v-model="smsCode" class="inp" placeholder="请输入短信验证码" type="text">
           <button class="getSmgCodeBtn" @click="getMsgVerifyCode" :disabled="currentSecond !== totalSecond">
             {{ currentSecond === totalSecond ? '获取验证码' : currentSecond + 's后重发' }}
           </button>
@@ -114,7 +140,7 @@ export default {
         </div>
       </div>
 
-      <div class="login-btn">登录</div>
+      <div @click="login" class="login-btn">登录</div>
     </div>
   </div>
 </template>
