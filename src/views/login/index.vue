@@ -34,13 +34,10 @@ export default {
         smsCode: this.smsCode
       })
       console.log(res)
-      if (res.status === 200) {
-        this.$toast('登录成功')
-        // Redirect to home page
-        await this.$router.push('/')
-      } else {
-        this.$toast('登录失败，请重试')
-      }
+
+      this.$toast('登录成功')
+      // Redirect to home page
+      await this.$router.push('/')
     },
     async getPicCode () {
       const res = await getPicCodeApi()

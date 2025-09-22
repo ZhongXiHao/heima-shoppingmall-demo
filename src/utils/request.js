@@ -1,6 +1,6 @@
 // Packaging axios
 import axios from 'axios'
-
+import { Toast } from 'vant'
 // Create an axios instance
 // Goodness: Each request has its own configuration
 const request = axios.create({
@@ -20,8 +20,15 @@ request.interceptors.request.use(function (config) {
 
 // Customize response interceptor
 request.interceptors.response.use(function (response) {
+  const res = response.data
   // Do something with response data
-  return response.data
+  if (res.status !== 200) {
+    // Show warning message
+    Toast(res.message ? res.message : 'Network Error')
+    // If the response status code is not 200, it indicates a failure
+    return Promise.reject(res.message)
+  }
+  return res
 }, function (error) {
   // Do something with response error
   return Promise.reject(error)

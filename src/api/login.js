@@ -9,7 +9,7 @@ export const getPicCodeApi = () => {
 // 2. Get SMS verification code
 export const getMsgVerifyCodeApi = (data) => {
   return request.post('/captcha/sendSmsCaptcha', {
-    header: { platform: 'h5' },
+    headers: { platform: 'h5' },
     form: {
       captchaCode: data.captchaCode,
       captchaKey: data.captchaKey,
@@ -21,7 +21,7 @@ export const getMsgVerifyCodeApi = (data) => {
 // 3. Log in by phone number and SMS verification code
 export const loginApi = (data) => {
   return request.post('/passport/login', {
-    header: { platform: 'h5' },
+    headers: { platform: 'h5' },
     form: {
       isParty: false,
       partyData: {},
