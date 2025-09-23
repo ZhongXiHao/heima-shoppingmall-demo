@@ -1,6 +1,7 @@
 <script>
 
 import { getPicCodeApi, getMsgVerifyCodeApi, loginApi } from '@/api/login'
+import { mapMutations } from 'vuex'
 
 export default {
   name: 'LoginIndex',
@@ -34,7 +35,7 @@ export default {
         smsCode: this.smsCode
       })
       console.log(res)
-
+      this.setUserInfo(res.data)
       this.$toast('登录成功')
       // Redirect to home page
       await this.$router.push('/')
@@ -95,7 +96,9 @@ export default {
         return false
       }
       return true
-    }
+    },
+    // Save userInfo to Vuex store
+    ...mapMutations('User', ['setUserInfo'])
   },
   destroyed () {
     // When the component is destroyed, clear the timer
