@@ -12,6 +12,12 @@ const request = axios.create({
 // Customize request interceptors
 request.interceptors.request.use(function (config) {
   // Do something before request is sent
+  // Turn on loading indicator, and disabled background interaction
+  Toast.loading({
+    message: '加载中...',
+    forbidClick: true, // Disable background interaction
+    duration: 0// Keep loading
+  })
   return config
 }, function (error) {
   // Do something with request error
@@ -27,6 +33,8 @@ request.interceptors.response.use(function (response) {
     Toast(res.message ? res.message : 'Network Error')
     // If the response status code is not 200, it indicates a failure
     return Promise.reject(res.message)
+  } else {
+    Toast.clear()
   }
   return res
 }, function (error) {

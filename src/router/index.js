@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import store from '@/store'
 
 // Layouts
 import HomeLayout from '@/views/home-layout/index.vue'
@@ -39,6 +40,25 @@ const router = new VueRouter({
     { path: '/product-details/:id', component: ProductDetails }
 
   ]
+})
+
+// Array for routes that do not require authentication
+const authRoutes = ['/pay', '/order', '/cart', '/user']
+
+// Global navigation guard
+router.beforeEach((to, from, next) => {
+  // No authentication required, proceed
+  if (!authRoutes.includes(to.path)) {
+    next()
+  }
+
+  // Check if user is logged in
+  const token = store.getters.getUserToken
+  if (token) {
+    next()
+  } else {
+    next('/login')
+  }
 })
 
 export default router
