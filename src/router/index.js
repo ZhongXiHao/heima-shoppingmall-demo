@@ -50,6 +50,7 @@ router.beforeEach((to, from, next) => {
   // No authentication required, proceed
   if (!authRoutes.includes(to.path)) {
     next()
+    return
   }
 
   // Check if user is logged in
