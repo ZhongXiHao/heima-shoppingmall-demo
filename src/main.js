@@ -5,6 +5,11 @@ import store from './store'
 import '@/utils/vant-ui' // Import Vant UI
 import '@/styles/common.less'
 
+// Directives
+import focus from '@/directives/focus'
+
+Vue.directive('focus', focus)
+
 Vue.config.productionTip = false
 
 new Vue({
