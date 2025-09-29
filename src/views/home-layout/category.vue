@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { getCategoryData } from '@/api/category'
+import { getCategoryData } from '@/api/getCategories'
 export default {
   name: 'CategoryIndex',
   created () {
