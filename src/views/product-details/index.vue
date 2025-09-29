@@ -72,24 +72,60 @@
         <span>首页</span>
       </div>
       <div class="icon-cart">
+        <span v-if="cartTotal > 0" class="num">{{ cartTotal }}</span>
         <van-icon name="shopping-cart-o"/>
         <span>购物车</span>
       </div>
-      <div class="btn-add">加入购物车</div>
-      <div class="btn-buy">立刻购买</div>
+      <div class="btn-add" @click="showCartPanel">加入购物车</div>
+      <div class="btn-buy" @click="checkOut">立刻购买</div>
     </div>
+    <!-- 加入购物车弹层 -->
+    <van-action-sheet v-model="isShowCartPanel" :title="panelMode">
+      <div class="product">
+        <div class="product-title">
+          <div class="left">
+            <img :src="productDetail.goods_image" alt="">
+          </div>
+          <div class="right">
+            <div class="price">
+              <span>¥</span>
+              <span class="nowprice">{{ productDetail.goods_price_min }}</span>
+            </div>
+            <div class="count">
+              <span>库存</span>
+              <span>{{ productDetail.stock_total }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="num-box">
+          <span>数量</span>
+          <CountBox v-model="productCount" :stock="productDetail.stock_total"></CountBox>
+        </div>
+        <div class="showbtn" v-if="productDetail.stock_total > 0">
+          <div @click="addToCart" class="btn" v-if="panelMode === '加入购物车'">加入购物车</div>
+          <div class="btn now" v-else>立刻购买</div>
+        </div>
+        <div class="btn-none" v-else>该商品已抢完</div>
+      </div>
+    </van-action-sheet>
   </div>
+
 </template>
 
 <script>
 import { getGoodsDetailApi } from '@/api/getGoodsDetail'
 import { getCommentsApi } from '@/api/getComments'
 import defaultAvatar from '@/assets/default-avatar.png'
+import CountBox from '@/components/CountBox.vue'
+import { addToCartApi } from '@/api/addToCart'
+import { getCartListApi } from '@/api/getCartList'
 
 export default {
   name: 'ProductDetailsIndex',
+  components: { CountBox },
   data () {
     return {
+      panelMode: '',
       productDetail: {},
       comments: {},
       // images: [
@@ -97,7 +133,10 @@ export default {
       //   'https://img01.yzcdn.cn/vant/apple-2.jpg'
       // ],
       current: 0,
-      defaultUserAvatar: defaultAvatar
+      defaultUserAvatar: defaultAvatar,
+      isShowCartPanel: false,
+      productCount: 1,
+      cartTotal: 0
     }
   },
   computed: {
@@ -112,10 +151,18 @@ export default {
     onChange (index) {
       this.current = index
     },
+    showCartPanel () {
+      this.isShowCartPanel = true
+      this.panelMode = '加入购物车'
+    },
+    checkOut () {
+      this.isShowCartPanel = true
+      this.panelMode = '确认订单'
+    },
     async fetchProductDetail () {
       const res = await getGoodsDetailApi(this.$route.params.id)
       this.productDetail = res.data.detail
-      // console.log(this.productDetail)
+      console.log(this.productDetail)
     },
     async fetchComments () {
       const res = await getCommentsApi({
@@ -124,11 +171,53 @@ export default {
       })
       this.comments = res.data
       // console.log(this.comments)
+    },
+    async fetchCartTotal () {
+      const res = await getCartListApi()
+      this.cartTotal = res.data.cartTotal
+    },
+    async addToCart () {
+      // No token, ask to log in
+      if (!this.$store.getters.getUserToken) {
+        this.$dialog.confirm({
+          title: '温馨提示',
+          message: '您还未登录，是否前往登录？',
+          confirmButtonText: '去登录',
+          cancelButtonText: '再逛逛'
+        })
+          .then(() => {
+            // on confirm
+            // After login, return to this page
+            this.$router.push({
+              path: '/login',
+              query: {
+                redirectUrl: this.$route.fullPath
+              }
+            })
+          })
+          .catch(() => {
+            // on cancel
+            // Nothing to do
+          })
+        return
+      }
+
+      // Add to cart logic
+      const res = await addToCartApi({
+        goodsId: this.$route.params.id,
+        goodsNum: this.productCount,
+        goodsSkuId: this.productDetail.skuList[0].goods_sku_id
+      })
+      this.cartTotal = res.data.cartTotal
+      // console.log(this.cartTotal)
+      this.isShowCartPanel = false
+      this.$toast(res.message)
     }
   },
-  async created () {
-    await this.fetchProductDetail()
-    await this.fetchComments()
+  created () {
+    this.fetchProductDetail()
+    this.fetchComments()
+    this.fetchCartTotal()
   }
 }
 </script>
@@ -298,9 +387,83 @@ export default {
       background-color: #fe5630;
     }
   }
+
+  .product {
+    .product-title {
+      display: flex;
+
+      .left {
+        img {
+          width: 90px;
+          height: 90px;
+        }
+
+        margin: 10px;
+      }
+
+      .right {
+        flex: 1;
+        padding: 10px;
+
+        .price {
+          font-size: 14px;
+          color: #fe560a;
+
+          .nowprice {
+            font-size: 24px;
+            margin: 0 5px;
+          }
+        }
+      }
+    }
+
+    .num-box {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      align-items: center;
+    }
+
+    .btn, .btn-none {
+      height: 40px;
+      line-height: 40px;
+      margin: 20px;
+      border-radius: 20px;
+      text-align: center;
+      color: rgb(255, 255, 255);
+      background-color: rgb(255, 148, 2);
+    }
+
+    .btn.now {
+      background-color: #fe5630;
+    }
+
+    .btn-none {
+      background-color: #cccccc;
+    }
+  }
+
+  .footer .icon-cart {
+    position: relative;
+    padding: 0 6px;
+
+    .num {
+      z-index: 999;
+      position: absolute;
+      top: -2px;
+      right: 0;
+      min-width: 16px;
+      padding: 0 4px;
+      color: #fff;
+      text-align: center;
+      background-color: #ee0a24;
+      border-radius: 50%;
+    }
+  }
 }
 
 .tips {
   padding: 10px;
 }
+
 </style>

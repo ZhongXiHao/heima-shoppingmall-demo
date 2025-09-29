@@ -1,6 +1,6 @@
 import Vue from 'vue'
 // Import UI From Vant
-import { Button, Rate, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon } from 'vant'
+import { Button, Rate, Tabbar, TabbarItem, NavBar, Toast, Search, Swipe, SwipeItem, Grid, GridItem, Icon, ActionSheet, Dialog } from 'vant'
 
 // Use Vant UI
 Vue.use(Button)
@@ -15,3 +15,5 @@ Vue.use(SwipeItem)
 Vue.use(Grid)
 Vue.use(GridItem)
 Vue.use(Icon)
+Vue.use(ActionSheet)
+Vue.use(Dialog)

@@ -37,8 +37,10 @@ export default {
       console.log(res)
       this.setUserInfo(res.data)
       this.$toast('登录成功')
-      // Redirect to home page
-      await this.$router.push('/')
+      // Check if there's a redirect URL in the query parameters
+      const redirectUrl = this.$route.query.redirectUrl || '/'
+      // Redirect to the specified URL or homepage
+      await this.$router.replace(redirectUrl)
     },
     async getPicCode () {
       const res = await getPicCodeApi()

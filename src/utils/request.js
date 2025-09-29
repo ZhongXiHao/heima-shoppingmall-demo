@@ -1,6 +1,7 @@
 // Packaging axios
 import axios from 'axios'
 import { Toast } from 'vant'
+import store from '@/store/index'
 // Create an axios instance
 // Goodness: Each request has its own configuration
 const request = axios.create({
@@ -18,6 +19,13 @@ request.interceptors.request.use(function (config) {
     forbidClick: true, // Disable background interaction
     duration: 0// Keep loading
   })
+
+  // Post token
+  const token = store.getters.getUserToken
+  if (token) {
+    config.headers['Access-Token'] = token
+    config.platform = 'h5'
+  }
   return config
 }, function (error) {
   // Do something with request error
