@@ -78,7 +78,7 @@ export default {
     this.bannerList = res.data.pageData.items[1].data
     this.navList = res.data.pageData.items[3].data
     this.goodsList = res.data.pageData.items[6].data
-    console.log(this.goodsList)
+    // console.log(this.goodsList)
   }
 }
 </script>

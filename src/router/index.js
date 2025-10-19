@@ -23,9 +23,9 @@ const router = new VueRouter({
   routes: [
     {
       path: '/',
-      redirect: '/home',
       component: HomeLayout,
       children: [
+        { path: '', redirect: 'home' }, // 默认重定向到 /home，同时保留 HomeLayout
         { path: '/home', component: Home },
         { path: '/category', component: Category },
         { path: '/cart', component: Cart },
@@ -37,7 +37,8 @@ const router = new VueRouter({
     { path: '/pay', component: Pay },
     { path: '/search', component: SearchLayout },
     { path: '/search-list', component: SearchList },
-    { path: '/product-details/:id', component: ProductDetails }
+    { path: '/product-details/:id', component: ProductDetails },
+    { path: '/*', redirect: '/home' }
 
   ]
 })

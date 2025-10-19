@@ -16,12 +16,12 @@ export default {
     },
     stock: {
       type: Number,
-      default: 0
+      default: -1
     }
   },
   methods: {
     handleSub () {
-      if (this.value <= 1) {
+      if (this.stock !== -1 && this.value <= 1) {
         return
       }
       this.$emit('input', this.value - 1)
@@ -30,11 +30,11 @@ export default {
       this.$emit('input', this.value + 1)
     },
     handleChange (e) {
-      // console.log(e.target.value)
+      // console.log(this.stock)
       const num = +e.target.value // String -> Number(NaN)
 
       // Invalid input, float, less than 1, greater than stock  -> revert to previous value
-      if (num < 1 || !Number.isInteger(num) || num > this.stock) {
+      if ((this.stock !== -1 && num < 1) || !Number.isInteger(num) || (this.stock !== -1 && num > this.stock)) {
         e.target.value = this.value
         return
       }
